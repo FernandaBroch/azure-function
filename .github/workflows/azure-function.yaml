@@ -1,0 +1,38 @@
+name: Azure Functions Deployment
+
+on:
+  push:
+    branches:
+      - main 
+
+env:
+  POM_XML_DIRECTORY: '.'
+  AZURE_FUNCTIONS_APP_NAME: 'eastus-fourlanches-auth-function'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '17' 
+
+      - name: Build Azure Functions
+        shell: bash
+        run: |
+          pushd './${{ env.POM_XML_DIRECTORY }}'
+          mvn clean package
+          popd
+
+      - name: Deploy to Azure Functions
+        uses: azure/functions-action@v1
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONS_APP_NAME }}
+          package: '${{ env.POM_XML_DIRECTORY }}'
+          publish-profile: ${{ secrets.AZURE_FUNCTIONS_PUBLISH_PROFILE }}
+          respect-pom-xml: true
